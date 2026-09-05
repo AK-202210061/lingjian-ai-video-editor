@@ -1,0 +1,32 @@
+{
+  "status": "PASS",
+  "rounds": 5,
+  "total_checks": 40,
+  "results": [
+    {
+      "round": 1,
+      "buttons": 14,
+      "checks": 8
+    },
+    {
+      "round": 2,
+      "buttons": 14,
+      "checks": 8
+    },
+    {
+      "round": 3,
+      "buttons": 14,
+      "checks": 8
+    },
+    {
+      "round": 4,
+      "buttons": 14,
+      "checks": 8
+    },
+    {
+      "round": 5,
+      "buttons": 14,
+      "checks": 8
+    }
+  ]
+}
