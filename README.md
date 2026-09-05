@@ -1,103 +1,92 @@
-# 灵剪 AI 视频编辑器 4.13
+# LingJian AI Video Editor
 
-面向 Windows 的本地非线性视频编辑器，采用接近专业剪辑软件 Edit 页的双监视器、轨道时间线和三点编辑工作流。渲染、代理和离线场景检测在本机完成；云端 AI 仅在用户主动配置接口并点击运行后调用。
+LingJian is a Windows desktop nonlinear video editor that combines a traditional, editable timeline with optional AI-assisted footage analysis and narrative planning. Local media processing stays on the user's machine; cloud AI is only called after the user provides an API key and starts an analysis.
 
-> This repository contains the maintainable source code. FFmpeg, the optional U²-Net model, generated previews, installers, and local user media are intentionally excluded from Git history.
+This repository contains the current **4.13** source release.
 
-## 从源码运行
+## Highlights
 
-环境要求：Windows 10/11、Python 3.11+、系统可调用的 FFmpeg/FFprobe。
+- Multitrack video, subtitle, original-audio, music, and overlay timeline
+- Source/program monitors, in/out points, insert/overwrite editing, trim, split, ripple delete, and undo/redo
+- Local scene and quality analysis with proxy generation for difficult media
+- Optional multimodal AI analysis through OpenAI-compatible Responses and transcription APIs
+- Versioned, reviewable edit plans instead of direct model control over the timeline
+- Chronology, clip-boundary, subtitle-readability, transition, and export quality checks
+- Deterministic FFmpeg rendering for portrait, landscape, and square H.264/AAC output
+- Optional local U²-Net person segmentation and temporally smoothed background effects
+- API keys encrypted for the current Windows user with DPAPI
+
+## Project layout
+
+```text
+.
+|-- app.py                  # Desktop application and workflow orchestration
+|-- core.py                 # Project model, media analysis, and FFmpeg rendering
+|-- ai_api.py               # Optional cloud analysis and narrative planning
+|-- edit_protocol.py        # Validated, auditable edit-plan layer
+|-- timeline_widget.py      # Interactive multitrack timeline
+|-- creative_director.py    # Whole-video creative treatment
+|-- editing_profile.py      # Locally learned editing preferences
+|-- person_ai.py            # Optional local person segmentation
+|-- music_library.py        # Bundled generated music metadata
+|-- sfx_library.py          # Bundled generated sound-effect metadata
+|-- assets/                 # Fonts, music, and sound effects
+|-- docs/                   # API setup, current release notes, and design notes
+|-- licenses/               # Third-party license texts
+`-- tests/                  # Current regression tests
+```
+
+## Requirements
+
+- Windows 10 or 11
+- Python 3.11+
+- FFmpeg and FFprobe available on `PATH`, or `ffmpeg.exe` beside `app.py`
+
+## Run from source
 
 ```powershell
+git clone https://github.com/AK-202210061/lingjian-ai-video-editor.git
+cd lingjian-ai-video-editor
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-python app_v2.py
+python app.py
 ```
 
-人物分割功能还需要将 `u2net_human_seg.onnx` 放入 `models/`；该大文件未包含在仓库中。其他剪辑、时间线、AI 接口和 FFmpeg 渲染功能不依赖此模型。
+The editor works without a cloud key. To enable cloud-assisted content analysis, follow [docs/API_SETUP.md](docs/API_SETUP.md).
 
-## 主要功能
+## Optional person-segmentation model
 
-- 清爽玻璃工作台：三栏卡片式布局、深色双监视器、首屏时间线和紧凑右侧检查器
-- 顶部固定工程操作区和五步流程导航，导入、精剪、质量检查、导出的位置一眼可见
-- 三轨常驻时间线：在 1280×800 下仍同时完整显示 V1 视频、T1 字幕、A1 音乐/原声
-- 智能蒙版工作流：按人物、美食/商品、口播卡片或电影感选择用途，拖动主体位置后生成真实预览
-- 高级转场库：画中画展开、双向数字撕裂、像素化、挤压、放射、黑白闪场、覆盖和揭幕
-- 高级蒙版库：菱形、竖条、左右分屏、局部隐私模糊和电影暗角，全部支持真实导出
-- 本地 AI 自动抠人与人物移动跟踪：三种背景合成、三档精度、时间平滑遮罩与跟踪关键点记录
-- AI 完整方案会同时生成高级开篇：电影窗格、动态分屏、主体揭示、撕裂闪回或极简电影，方案预览逐镜头列出蒙版和转场，应用后仍可人工微调
-- 走马灯闪回开篇会从每个导入素材各取一个短瞬间，以巡游窗格、覆盖、滑动、撕裂和放大快速预告，再回到真实拍摄顺序进入正文
-- 镂空 `VLOG` 字内走马灯：背景远景保持原样，素材回闪只显示在文字字形内部，并自动配合滴答钟声
-- Q 弹时光标题：标题按弹簧衰减曲线逐帧回弹，可在字幕/标题页改文字、颜色或关闭效果
-- AI 生成后仍可人工微调：时间线选中片段，在“字幕/标题”中切换普通、Q 弹、镂空字内走马灯并渲染当前效果预览
-- AI 自适应多轨：需要画中画、分屏或组合蒙版时自动创建 V2/V3 独立叠加轨；简单镜头不会无意义堆轨
-- V2–V6 手工叠加轨：可把当前 V1 片段放到播放头，分别调整出现时间、持续时间、布局、椭圆/圆形/矩形蒙版和透明度
-- 多轨时间线真实显示每个叠加片段，工程保存、撤销、效果预览、质量门禁和最终 FFmpeg 导出均理解多轨数据
-- 长方案顺序自动修复：保留创意钩子，正文按相机拍摄时间与素材内入点稳定排序；99% 自动修成 100% 后直接允许应用
-- 方案预览会显示“自动修复”、移动镜头数量及前几个旧位置→新位置；缺失时间、素材越界、重复片段等真正错误仍继续阻止
-- AI 高级开篇同步匹配滴答、掠过、滑动、撕纸、故障、快门、弹出、星芒和低频冲击音效；内置音效库可试听并在播放头位置手动添加
-- 源监视器 + 节目监视器：源素材与成片时间线分开预览
-- 入点/出点与三点编辑：`I` 标记入点、`O` 标记出点、`F9` 插入、`F10` 覆盖
-- 精剪工具：选择 `A`、刀片 `B`、吸附 `N`、帧步进、时间码定位、分割、复制、波纹删除
-- 多轨时间线：V1 视频、T1 字幕、A1 原声，支持轨道锁定与静音
-- 片段边缘裁切、拖拽排序、撤销/重做、自动保存、工程保存与恢复
-- HEVC/H.265 10-bit 自动生成 H.264 流畅代理，适配 DJI 竖屏素材
-- 片段字幕、字幕位置、淡入淡出、原声音量、背景音乐和混音
-- 离线质量分析：镜头检测、曝光/色彩/清晰度评分、重复片段抑制和多素材覆盖
-- AI 导演三阶段流程：逐素材画面/语音理解、全局叙事排序、确定性连续性复核
-- AI 先生成版本化剪辑方案，显示每个镜头的来源、入出点、叙事角色和选择理由，确认后才修改时间线
-- AI 方案应用是一次原子操作，按 `Ctrl+Z` 可整体撤销，不会留下半套修改
-- 受控编辑工具协议：裁切、删除、顺序移动、字幕、转场、蒙版和音量都经过参数白名单与范围检查
-- 60 秒以上自动切换长视频章节模式：15–35 秒一章，冷开场后全局时间只允许向前
-- 画面接触表从 16 帧提升到 36 帧，并使用压缩音频转写，覆盖长素材的中后段
-- 一键生成完整叙事时间线；生成结果不是锁死模板，可继续删除、分割、裁切、复制和拖动重排
-- 新增“美食教程”模式：只允许一个成品钩子，正片严格按食材→切配→烹饪→装盘→试吃推进
-- 读取素材拍摄时间和相机文件名时间戳，旅行/纪录片正片按真实事件时间推进
-- 旅行、美食教程、快节奏、纪录片、电影感和口播知识六种导演风格
-- AI 字幕优先忠实使用真实语音，自动限制短字幕长度和双行安全区样式
-- 独立字幕/标题检查器：9 种中英文字体、字号、文字色、底色、透明度及四种安全区域
-- 9 种真实视频转场及持续时间控制，支持当前切点或批量应用
-- 创作蒙版检查器：圆形、椭圆、人物卡片和电影宽银幕，可调中心、尺寸、羽化和不透明度
-- “渲染当前效果预览”可在节目监视器查看字幕、转场和蒙版的最终合成效果
-- 可在软件中配置 OpenAI 或兼容接口；API Key 使用 Windows DPAPI 本机加密保存
-- FFmpeg H.264/AAC MP4 实际渲染，以及竖屏、横屏、方形导出预设
-- 通用 MP4 输出：H.264 Main 4.1、8-bit yuv420p、固定 30 fps、avc1、AAC 双声道、mp42
-- 导出结束后自动检查编码、文件大小及 MP4 尾部，校验通过才提示完成
-- 导出前质量门禁：检查真实拍摄顺序、片段越界、字幕阅读速度、转场时长及花式转场比例
+Download `u2net_human_seg.onnx`, verify its SHA-256 value against `MODEL_SHA256` in `person_ai.py`, and place it at:
 
-## 快速开始
+```text
+models/u2net_human_seg.onnx
+```
 
-1. 运行 `灵剪AI视频编辑器.exe`。
-2. 点击左侧“导入素材”，选择一个或多个视频。
-3. 在源监视器中播放素材，用 `I`/`O` 设置需要的范围。
-4. 按 `F9` 插入到时间线；也可以把素材直接拖到时间线。
-5. 用 `A` 选择和裁边，用 `B` 点击片段进行切割；单击 V1/A1 轨道头可锁定或静音。
-6. 使用 AI 时先在方案窗口核对镜头理由和顺序，再点击“应用到时间线”。
-7. 在右侧“剪辑”页继续调整，点击“导出前质量检查”，通过后选择画幅并导出。
+The model is intentionally excluded from Git because of its size and separate distribution terms. All non-segmentation editing features remain available without it.
 
-常用快捷键：`Space` 或 `K` 播放/暂停，`J/L` 后退/前进一帧，`Ctrl+B` 在播放头分割，`Ctrl+D` 复制，`Delete` 波纹删除，`Ctrl+Z/Y` 撤销/重做，`Ctrl+S` 保存。
+## Tests
 
-## 云端 AI 接口
+```powershell
+python tests/run_tests.py
+```
 
-打开右侧“API 设置”页，填写接口地址、API Key、视觉模型和语音转写模型。保存后，在“AI 精剪”页点击“云端 AI 内容理解”。程序会为每段素材生成低分辨率联系图和 16 kHz 单声道音频，调用 `/v1/responses` 与 `/v1/audio/transcriptions`，并把模型返回的精彩区间转换为仍可手工修改的时间线片段。密钥不会写入工程文件。
+Additional generated-media tests in `tests/` require FFmpeg. The portable runner covers edit-plan validation, continuity, long-form ordering, personalization, capture order, and the mocked AI workflow.
 
-详见 `API_SETUP.md`。
+## Privacy and AI behavior
 
-## 边界说明
+- Imported media, proxies, project state, and offline analysis remain local.
+- API keys are stored with Windows DPAPI and are not written into project files.
+- Cloud analysis sends only the derived contact sheets and compressed audio needed for the requested operation.
+- AI output is converted into a validated edit plan that the user reviews before applying.
 
-4.2.2 新增可靠拍摄顺序锁：DJI 等文件名含 YYYYMMDDhhmmss 时间戳的多段素材，只允许一个成品钩子前置，其余镜头严格按源文件拍摄时间与文件内时间推进，AI 的步骤猜测不能再打乱真实事件。
+## Documentation
 
-4.3.0 新增热门叙事节拍表与本地个人偏好：美食、旅行、生活记录和剧情短片会按 30/60/120 秒使用不同结构；人工拖动时间线后可点击“学习当前人工时间线”，把顺序权重、钩子偏好、平均镜头长度、字幕位置/字体和常用转场保存到当前 Windows 用户设置，下一次 AI 成片自动读取。
+- [API configuration](docs/API_SETUP.md)
+- [Current release notes](docs/RELEASE_NOTES.md)
+- [Creative-direction design](docs/CREATIVE_DIRECTION.md)
+- [Third-party notices](THIRD_PARTY_NOTICES.md)
 
-4.4.0 新增可审计 AI 剪辑协议：AI 结果不再直接覆盖时间线，而是先形成带版本、来源、理由和校验报告的方案；钩子后的真实拍摄顺序为硬门禁，未知转场自动降级为直接切换。新增导出前机械质量检查和受控编辑工具层，云端失败或用户取消时原工程保持不变。
+## Scope
 
-4.5.0 重做清爽玻璃工作台：保留 4.4.0 的全部剪辑与 AI 能力，重新组织顶部工程操作、素材库、双监视器、时间线工具和七类检查器；缩短标签、增加工具提示、明确主次按钮，并修正空监视器和短时间线在浅色主题中的显示。
-
-4.6.0 将蒙版改为用途优先的智能操作：自动按素材画幅推荐聚焦方式，提供可拖动主体示意与一键真实效果预览；中间工作区改为上下可调分割，默认完整显示视频、字幕、音乐/原声三轨，并可一键扩大时间线。
-
-4.7.0 新增高级转场与蒙版库：画中画展开使用中心缩放合成，数字撕裂使用双向横向切片合成；另有像素化、挤压、放射、黑白闪场、覆盖和揭幕。新增菱形、竖条、左右分屏、隐私模糊与暗角蒙版，并加入 AI 受控白名单和真实 FFmpeg 导出链。
-
-4.8.0 内置本地 U²-Net 人像分割模型：选择片段后可以自动生成随人物移动的连续遮罩，合成人物清晰/背景虚化、背景压暗或深色替换效果。处理结果进入工程、预览、拆分、裁切、撤销与最终导出，不需要云端 API，也不会改写原始素材。
-
-本软件聚焦剪辑页、长视频章节规划、AI 成片、字幕、转场和基础蒙版，不等同于完整 DaVinci Resolve 或 Premiere Pro：尚不包含节点式专业调色、自由钢笔贝塞尔蒙版、逐帧运动跟踪、Fusion 合成、Fairlight 工程、多人协作和多机位同步。云端 AI 需要用户自己的可用密钥和可用额度，调用可能产生服务费用；额度不足时可以使用离线质量分析与叙事初剪。
+LingJian focuses on editable AI-assisted assembly, short/long-form narrative planning, subtitles, transitions, multitrack composition, and dependable local export. It is not intended to replace the advanced color, compositing, audio, collaboration, or multicamera systems in a full professional post-production suite.

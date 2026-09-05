@@ -1,8 +1,8 @@
-import json,os,subprocess,sys,tempfile
+import json,os,shutil,subprocess,sys,tempfile
 from pathlib import Path
 from core import *
 
-ROOT=Path(__file__).parent;FF=str(ROOT/'ffmpeg.exe')
+ROOT=Path(__file__).parents[1];FF=str(ROOT/'ffmpeg.exe') if (ROOT/'ffmpeg.exe').exists() else (shutil.which('ffmpeg') or 'ffmpeg')
 def run(cmd):
     p=subprocess.run(cmd,capture_output=True,text=True,encoding='utf-8',errors='replace',creationflags=0x08000000 if os.name=='nt' else 0)
     if p.returncode:raise AssertionError((p.stderr or '')[-1500:])

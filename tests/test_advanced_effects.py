@@ -1,8 +1,8 @@
-import json,os,subprocess,sys,tempfile
+import json,os,shutil,subprocess,sys,tempfile
 from pathlib import Path
 from core import Clip,Project,build_render_command,validate_rendered_mp4
 
-ROOT=Path(__file__).parent;FF=str(ROOT/'ffmpeg.exe');BASE=Path(sys.argv[1] if len(sys.argv)>1 else tempfile.mkdtemp(prefix='lingjian-v47-'));BASE.mkdir(parents=True,exist_ok=True)
+ROOT=Path(__file__).parents[1];FF=str(ROOT/'ffmpeg.exe') if (ROOT/'ffmpeg.exe').exists() else (shutil.which('ffmpeg') or 'ffmpeg');BASE=Path(sys.argv[1] if len(sys.argv)>1 else tempfile.mkdtemp(prefix='lingjian-effects-'));BASE.mkdir(parents=True,exist_ok=True)
 TRANSITIONS=['pip_zoom','tear_left','tear_right','pixelize','squeeze','radial','fade_black','fade_white','cover_left','reveal_right']
 MASKS=['none','diamond','vertical_strip','split_left','split_right','privacy_blur','vignette','spotlight','ellipse','portrait_card','cinema']
 

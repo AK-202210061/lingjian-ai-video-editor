@@ -29,4 +29,4 @@
 - https://www.scenedetect.com/docs/latest/
 - https://github.com/WyattBlue/auto-editor
 
-随安装包提供 `U2NET_LICENSE.txt`、`ONNXRUNTIME_LICENSE.txt` 与三份字体 OFL 完整许可证文本。
+仓库中的完整许可证文本位于 `licenses/U2NET_LICENSE.txt`、`licenses/ONNXRUNTIME_LICENSE.txt`，字体 OFL 文本随对应字体资源保留。
